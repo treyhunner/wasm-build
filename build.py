@@ -111,6 +111,7 @@ def check_build_dir(directory, human_name):
 
 def build_cpython(python_build_dir, python_version):
     if python_version:
+        run("git fetch --all")
         run(f"git checkout {python_version}")
     python_build_dir.mkdir(parents=True)
     run("../../configure -C", cwd=python_build_dir)
@@ -122,11 +123,19 @@ def build_wasm_browser(wasm_build_dir):
     os.environ["CONFIG_SITE"] = (
         "../../Tools/wasm/config.site-wasm32-emscripten"
     )
+    os.environ["CFLAGS"] = (
+        "-Werror=incompatible-pointer-types"
+    )
     run(
         "emconfigure ../../configure -C"
         " --host=wasm32-unknown-emscripten"
         " --build=$(../../config.guess)"
         " --with-emscripten-target=browser"
+        " --without-pymalloc"
+        " --disable-shared"
+        " --disable-ipv6"
+        " --enable-big-digits=30"
+        " --enable-optimizations"
         " --with-build-python=$(pwd)/../build/python",
         cwd=wasm_build_dir,
     )
